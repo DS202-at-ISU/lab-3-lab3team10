@@ -71,10 +71,86 @@ between 1 and 5 (look into the function `parse_number`); Death is a
 categorical variables with values “yes”, “no” and ““. Call the resulting
 data set `deaths`.
 
+``` r
+library(dplyr)
+```
+
+    ## 
+    ## Attaching package: 'dplyr'
+
+    ## The following objects are masked from 'package:stats':
+    ## 
+    ##     filter, lag
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     intersect, setdiff, setequal, union
+
+``` r
+library(tidyr)
+library(readr)
+
+# Transforming Death columns into long format
+deaths <- av %>%
+  pivot_longer(cols = starts_with("Death"), names_to = "Time", values_to = "Death") %>%
+  mutate(Time = parse_number(Time), Death = replace_na(Death, ""))
+head(deaths)
+```
+
+    ## # A tibble: 6 × 18
+    ##   URL                 Name.Alias Appearances Current. Gender Probationary.Introl
+    ##   <chr>               <chr>            <int> <chr>    <chr>  <chr>              
+    ## 1 http://marvel.wiki… "Henry Jo…        1269 YES      MALE   ""                 
+    ## 2 http://marvel.wiki… "Henry Jo…        1269 YES      MALE   ""                 
+    ## 3 http://marvel.wiki… "Henry Jo…        1269 YES      MALE   ""                 
+    ## 4 http://marvel.wiki… "Henry Jo…        1269 YES      MALE   ""                 
+    ## 5 http://marvel.wiki… "Henry Jo…        1269 YES      MALE   ""                 
+    ## 6 http://marvel.wiki… "Janet va…        1165 YES      FEMALE ""                 
+    ## # ℹ 12 more variables: Full.Reserve.Avengers.Intro <chr>, Year <int>,
+    ## #   Years.since.joining <int>, Honorary <chr>, Return1 <chr>, Return2 <chr>,
+    ## #   Return3 <chr>, Return4 <chr>, Return5 <chr>, Notes <chr>, Time <dbl>,
+    ## #   Death <chr>
+
 Similarly, deal with the returns of characters.
+
+``` r
+# Transforming Return columns into long format
+returns <- av %>%
+  pivot_longer(cols = starts_with("Return"), names_to = "Time", values_to = "Return") %>%
+  mutate(Time = parse_number(Time), Return = replace_na(Return, ""))
+head(returns)
+```
+
+    ## # A tibble: 6 × 18
+    ##   URL                 Name.Alias Appearances Current. Gender Probationary.Introl
+    ##   <chr>               <chr>            <int> <chr>    <chr>  <chr>              
+    ## 1 http://marvel.wiki… "Henry Jo…        1269 YES      MALE   ""                 
+    ## 2 http://marvel.wiki… "Henry Jo…        1269 YES      MALE   ""                 
+    ## 3 http://marvel.wiki… "Henry Jo…        1269 YES      MALE   ""                 
+    ## 4 http://marvel.wiki… "Henry Jo…        1269 YES      MALE   ""                 
+    ## 5 http://marvel.wiki… "Henry Jo…        1269 YES      MALE   ""                 
+    ## 6 http://marvel.wiki… "Janet va…        1165 YES      FEMALE ""                 
+    ## # ℹ 12 more variables: Full.Reserve.Avengers.Intro <chr>, Year <int>,
+    ## #   Years.since.joining <int>, Honorary <chr>, Death1 <chr>, Death2 <chr>,
+    ## #   Death3 <chr>, Death4 <chr>, Death5 <chr>, Notes <chr>, Time <dbl>,
+    ## #   Return <chr>
 
 Based on these datasets calculate the average number of deaths an
 Avenger suffers.
+
+``` r
+average_deaths <- deaths %>%
+  filter(Death == "YES") %>%
+  group_by(`Name.Alias`) %>%
+  summarize(num_deaths = n()) %>%
+  summarize(avg_deaths = mean(num_deaths))
+average_deaths
+```
+
+    ## # A tibble: 1 × 1
+    ##   avg_deaths
+    ##        <dbl>
+    ## 1       1.39
 
 ## Individually
 
@@ -84,6 +160,86 @@ Each team member picks one of the statements in the FiveThirtyEight
 [analysis](https://fivethirtyeight.com/features/avengers-death-comics-age-of-ultron/)
 and fact checks it based on the data. Use dplyr functionality whenever
 possible.
+
+### Keenan Jacobs:
+
+### FiveThirtyEight Statement
+
+> “I counted 89 total deaths — some unlucky Avengers are basically Meat
+> Loaf with an E-ZPass — and on 57 occasions the individual made a
+> comeback.”
+
+### Code to Fact-Check
+
+``` r
+# Counting total deaths
+total_deaths <- deaths %>%
+  filter(Death == "YES") %>%
+  summarize(total_deaths = n())
+
+# Counting total returns
+total_returns <- returns %>%
+  filter(Return == "YES") %>%
+  summarize(total_returns = n())
+
+# Display both totals
+total_deaths
+```
+
+    ## # A tibble: 1 × 1
+    ##   total_deaths
+    ##          <int>
+    ## 1           89
+
+``` r
+total_returns
+```
+
+    ## # A tibble: 1 × 1
+    ##   total_returns
+    ##           <int>
+    ## 1            57
+
+### My Answer
+
+The data confirms the statement from FiveThirtyEight regarding the
+Avengers’ mortality and comebacks. We found exactly 89 deaths and 57
+returns among the characters, aligning with the claim that “89 total
+deaths” and “57 occasions the individual made a comeback.”
+
+------------------------------------------------------------------------
+
+### FiveThirtyEight Statement
+
+> Quote the statement you are planning to fact-check.
+
+### Include the code
+
+Make sure to include the code to derive the (numeric) fact for the
+statement
+
+### Include your answer
+
+Include at least one sentence discussing the result of your
+fact-checking endeavor.
+
+------------------------------------------------------------------------
+
+### FiveThirtyEight Statement
+
+> Quote the statement you are planning to fact-check.
+
+### Include the code
+
+Make sure to include the code to derive the (numeric) fact for the
+statement
+
+### Include your answer
+
+Include at least one sentence discussing the result of your
+fact-checking endeavor.
+
+------------------------------------------------------------------------
 
 ### FiveThirtyEight Statement
 
