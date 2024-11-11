@@ -1,10 +1,9 @@
 ---
+
 output: github_document
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit the README.Rmd file -->
-
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -34,6 +33,7 @@ Get the data into a format where the five columns for Death[1-5] are replaced by
 library(dplyr)
 library(tidyr)
 library(readr)
+library(stringr)
 
 # Transforming Death columns into long format
 deaths <- av %>%
@@ -101,19 +101,65 @@ total_returns
 The data confirms the statement from FiveThirtyEight regarding the Avengers' mortality and comebacks. We found exactly 89 deaths and 57 returns among the characters, aligning with the claim that "89 total deaths" and "57 occasions the individual made a comeback."
 
 ---
+### Muhammad Raham Saleem:
 
 ### FiveThirtyEight Statement
 
-> Quote the statement you are planning to fact-check.
 
-### Include the code
+> But you can only tempt death so many times. There’s a 2-in-3 chance that a member of the Avengers returned from their first stint in the afterlife, but only a 50 percent chance they recovered from a second or third death.
+
+### Code
+```{r}
+# Ensure consistent lowercase values in Death and Return columns
+deaths <- deaths %>%
+  mutate(Death = tolower(Death))
+
+returns <- returns %>%
+  mutate(Return = tolower(Return))
+
+# Merge the 'deaths' and 'returns' datasets based on Name.Alias and Time
+death_return <- left_join(deaths, returns, by = c("Name.Alias", "Time"), relationship = "many-to-many")
+
+# Calculate the return probability for the first three death instances only
+return_probabilities <- death_return %>%
+  filter(Death == "yes", Time <= 3) %>%  # Only consider rows where Death is "yes" and Time is 1, 2, or 3
+  group_by(Time) %>%
+  summarize(
+    total_deaths = n(),                    # Count of total deaths at each time (e.g., first death, second death)
+    total_returns = sum(Return == "yes"),   # Count of returns after each death
+    return_probability = total_returns / total_deaths # Probability of return
+  )
+
+# Display the calculated return probabilities for the first three deaths
+print("Return probabilities for the first three death instances (Time):")
+return_probabilities
+
+
+
+```
 
 Make sure to include the code to derive the (numeric) fact for the statement
 
 ### Include your answer
 
-Include at least one sentence discussing the result of your fact-checking endeavor.
+First Death:
 
+The return probability after the first death is approximately 45.5% (0.455), which is lower than the expected 2-in-3 chance (66.7%).
+This means that, contrary to the claim, Avengers have less than a 50% chance of returning after their first death based on this dataset.
+Second Death:
+
+The return probability after the second death is 32.0% (0.32), which is below the expected 50%.
+This suggests that fewer Avengers return after their second death than claimed.
+Third Death:
+
+The return probability after the third death is 50% (0.5), which aligns with the claim of a 50% chance of returning after a third death.
+Fourth and Fifth Deaths:
+
+
+After the first death, the return probability is 45.5%, not the claimed 66.7%.
+After the second death, the return probability is 32%, lower than the expected 50%.
+After the third death, the return probability does align with 50%, which is consistent with the claim.
+These findings suggest that the likelihood of returning from death decreases over time and is generally lower than the quoted statistics in the claim.
 ---
 
 ### FiveThirtyEight Statement
