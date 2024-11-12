@@ -3,7 +3,7 @@
 output: github_document
 ---
 
-<!-- README.md is generated from README.Rmd. Please edit the README.Rmd file -->
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -160,21 +160,39 @@ After the first death, the return probability is 45.5%, not the claimed 66.7%.
 After the second death, the return probability is 32%, lower than the expected 50%.
 After the third death, the return probability does align with 50%, which is consistent with the claim.
 These findings suggest that the likelihood of returning from death decreases over time and is generally lower than the quoted statistics in the claim.
----
+
+
+###Bradyn Weaver
 
 ### FiveThirtyEight Statement
 
-> Quote the statement you are planning to fact-check.
+> Given the Avengers’ 53 years in operation and overall mortality rate, fans of the comics can expect one current or former member to die every seven months or so, with a permanent death occurring once every 20 months.
 
-### Include the code
 
-Make sure to include the code to derive the (numeric) fact for the statement
+```{r}
+#For calculating the average months per death:
+
+total_deaths <- sum(av$Death1 == "YES", na.rm = TRUE)
+permanent_deaths <- sum(av$Return1 == "NO", na.rm = TRUE)
+
+# Assuming the dataset covers 53 years of Avengers history:
+years_in_operation <- 53
+
+# Calculate the average time between any death and permanent deaths
+average_months_per_death <- (years_in_operation * 12) / total_deaths
+average_months_per_permanent_death <- (years_in_operation * 12) / permanent_deaths
+
+# Print results
+cat("Average time between any death:", average_months_per_death, "months\n")
+cat("Average time between permanent deaths:", average_months_per_permanent_death, "months\n")
+
+```
 
 ### Include your answer
 
-Include at least one sentence discussing the result of your fact-checking endeavor.
+Based on the dataset analysis above, it appears that FiveThirtyEight may have been off by 2 months for their average time between any death estimate. It also appears they were off by 7 months for their permanent death rate estimate.
 
----
+
 
 ### FiveThirtyEight Statement
 
