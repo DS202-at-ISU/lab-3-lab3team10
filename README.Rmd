@@ -193,18 +193,38 @@ cat("Average time between permanent deaths:", average_months_per_permanent_death
 Based on the dataset analysis above, it appears that FiveThirtyEight may have been off by 2 months for their average time between any death estimate. It also appears they were off by 7 months for their permanent death rate estimate.
 
 
+### Meghasyam Peddireddy
 
 ### FiveThirtyEight Statement
 
-> Quote the statement you are planning to fact-check.
+> "If a character is killed but then secretly hidden away in a stasis tube, they died."
 
-### Include the code
+### Code to Fact-Check
 
-Make sure to include the code to derive the (numeric) fact for the statement
+```{r}
+# Ensuring consistent values in Death and Return columns
+deaths <- deaths %>%
+  mutate(Death = tolower(Death))
 
-### Include your answer
+returns <- returns %>%
+  mutate(Return = tolower(Return))
 
-Include at least one sentence discussing the result of your fact-checking endeavor.
+# Merging deaths and returns datasets to check cases where a character 'died' but later 'returned'
+death_stasis_check <- deaths %>%
+  inner_join(returns, by = c("Name.Alias", "Time")) %>%
+  filter(Death == "yes" & Return == "yes")
+
+# Counting the number of such "stasis tube" instances
+stasis_count <- nrow(death_stasis_check)
+
+# Displaying the result
+death_stasis_check
+stasis_count
+
+```
 
 
-Upload your changes to the repository. Discuss and refine answers as a team.
+### My Answer
+Based on the result from the `death_stasis_check` table, we identified **`r stasis_count`** instances where characters were marked as "dead" but later "returned." This supports the FiveThirtyEight statement that Avengers who are believed to be dead may not always remain so, with some effectively being "hidden away in a stasis tube" or similar scenarios that enable their return. This finding aligns with the article's claim, illustrating that in the Marvel universe, death is often temporary, and characters frequently find ways to reappear after seeming to perish.
+
+

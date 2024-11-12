@@ -1,5 +1,6 @@
+------------------------------------------------------------------------
 
-<!-- README.md is generated from README.Rmd. Please edit the README.Rmd file -->
+## output: github_document
 
 # Lab report \#3 - instructions
 
@@ -89,6 +90,7 @@ library(dplyr)
 ``` r
 library(tidyr)
 library(readr)
+library(stringr)
 
 # Transforming Death columns into long format
 deaths <- av %>%
@@ -209,51 +211,195 @@ deaths” and “57 occasions the individual made a comeback.”
 
 ------------------------------------------------------------------------
 
+### Muhammad Raham Saleem:
+
 ### FiveThirtyEight Statement
 
-> Quote the statement you are planning to fact-check.
+> But you can only tempt death so many times. There’s a 2-in-3 chance
+> that a member of the Avengers returned from their first stint in the
+> afterlife, but only a 50 percent chance they recovered from a second
+> or third death.
 
-### Include the code
+### Code
+
+``` r
+# Ensure consistent lowercase values in Death and Return columns
+deaths <- deaths %>%
+  mutate(Death = tolower(Death))
+
+returns <- returns %>%
+  mutate(Return = tolower(Return))
+
+# Merge the 'deaths' and 'returns' datasets based on Name.Alias and Time
+death_return <- left_join(deaths, returns, by = c("Name.Alias", "Time"), relationship = "many-to-many")
+
+# Calculate the return probability for the first three death instances only
+return_probabilities <- death_return %>%
+  filter(Death == "yes", Time <= 3) %>%  # Only consider rows where Death is "yes" and Time is 1, 2, or 3
+  group_by(Time) %>%
+  summarize(
+    total_deaths = n(),                    # Count of total deaths at each time (e.g., first death, second death)
+    total_returns = sum(Return == "yes"),   # Count of returns after each death
+    return_probability = total_returns / total_deaths # Probability of return
+  )
+
+# Display the calculated return probabilities for the first three deaths
+print("Return probabilities for the first three death instances (Time):")
+```
+
+    ## [1] "Return probabilities for the first three death instances (Time):"
+
+``` r
+return_probabilities
+```
+
+    ## # A tibble: 3 × 4
+    ##    Time total_deaths total_returns return_probability
+    ##   <dbl>        <int>         <int>              <dbl>
+    ## 1     1          123            56              0.455
+    ## 2     2           25             8              0.32 
+    ## 3     3            2             1              0.5
 
 Make sure to include the code to derive the (numeric) fact for the
 statement
 
 ### Include your answer
 
-Include at least one sentence discussing the result of your
-fact-checking endeavor.
+First Death:
 
-------------------------------------------------------------------------
+The return probability after the first death is approximately 45.5%
+(0.455), which is lower than the expected 2-in-3 chance (66.7%). This
+means that, contrary to the claim, Avengers have less than a 50% chance
+of returning after their first death based on this dataset. Second
+Death:
+
+The return probability after the second death is 32.0% (0.32), which is
+below the expected 50%. This suggests that fewer Avengers return after
+their second death than claimed. Third Death:
+
+The return probability after the third death is 50% (0.5), which aligns
+with the claim of a 50% chance of returning after a third death. Fourth
+and Fifth Deaths:
+
+After the first death, the return probability is 45.5%, not the claimed
+66.7%. After the second death, the return probability is 32%, lower than
+the expected 50%. After the third death, the return probability does
+align with 50%, which is consistent with the claim. These findings
+suggest that the likelihood of returning from death decreases over time
+and is generally lower than the quoted statistics in the claim.
+
+\###Bradyn Weaver
 
 ### FiveThirtyEight Statement
 
-> Quote the statement you are planning to fact-check.
+> Given the Avengers’ 53 years in operation and overall mortality rate,
+> fans of the comics can expect one current or former member to die
+> every seven months or so, with a permanent death occurring once every
+> 20 months.
 
-### Include the code
+``` r
+#For calculating the average months per death:
 
-Make sure to include the code to derive the (numeric) fact for the
-statement
+total_deaths <- sum(av$Death1 == "YES", na.rm = TRUE)
+permanent_deaths <- sum(av$Return1 == "NO", na.rm = TRUE)
+
+# Assuming the dataset covers 53 years of Avengers history:
+years_in_operation <- 53
+
+# Calculate the average time between any death and permanent deaths
+average_months_per_death <- (years_in_operation * 12) / total_deaths
+average_months_per_permanent_death <- (years_in_operation * 12) / permanent_deaths
+
+# Print results
+cat("Average time between any death:", average_months_per_death, "months\n")
+```
+
+    ## Average time between any death: 9.217391 months
+
+``` r
+cat("Average time between permanent deaths:", average_months_per_permanent_death, "months\n")
+```
+
+    ## Average time between permanent deaths: 27.65217 months
 
 ### Include your answer
 
-Include at least one sentence discussing the result of your
-fact-checking endeavor.
+Based on the dataset analysis above, it appears that FiveThirtyEight may
+have been off by 2 months for their average time between any death
+estimate. It also appears they were off by 7 months for their permanent
+death rate estimate.
 
-------------------------------------------------------------------------
+### Meghasyam Peddireddy
 
 ### FiveThirtyEight Statement
 
-> Quote the statement you are planning to fact-check.
+> “If a character is killed but then secretly hidden away in a stasis
+> tube, they died.”
 
-### Include the code
+### Code to Fact-Check
 
-Make sure to include the code to derive the (numeric) fact for the
-statement
+``` r
+# Ensuring consistent values in Death and Return columns
+deaths <- deaths %>%
+  mutate(Death = tolower(Death))
 
-### Include your answer
+returns <- returns %>%
+  mutate(Return = tolower(Return))
 
-Include at least one sentence discussing the result of your
-fact-checking endeavor.
+# Merging deaths and returns datasets to check cases where a character 'died' but later 'returned'
+death_stasis_check <- deaths %>%
+  inner_join(returns, by = c("Name.Alias", "Time")) %>%
+  filter(Death == "yes" & Return == "yes")
+```
 
-Upload your changes to the repository. Discuss and refine answers as a
-team.
+    ## Warning in inner_join(., returns, by = c("Name.Alias", "Time")): Detected an unexpected many-to-many relationship between `x` and `y`.
+    ## ℹ Row 141 of `x` matches multiple rows in `y`.
+    ## ℹ Row 281 of `y` matches multiple rows in `x`.
+    ## ℹ If a many-to-many relationship is expected, set `relationship =
+    ##   "many-to-many"` to silence this warning.
+
+``` r
+# Counting the number of such "stasis tube" instances
+stasis_count <- nrow(death_stasis_check)
+
+# Displaying the result
+death_stasis_check
+```
+
+    ## # A tibble: 67 × 34
+    ##    URL.x      Name.Alias Appearances.x Current..x Gender.x Probationary.Introl.x
+    ##    <chr>      <chr>              <int> <chr>      <chr>    <chr>                
+    ##  1 http://ma… "Janet va…          1165 YES        FEMALE   ""                   
+    ##  2 http://ma… "Anthony …          3068 YES        MALE     ""                   
+    ##  3 http://ma… "Robert B…          2089 YES        MALE     ""                   
+    ##  4 http://ma… "Thor Odi…          2402 YES        MALE     ""                   
+    ##  5 http://ma… "Steven R…          3458 YES        MALE     ""                   
+    ##  6 http://ma… "Clinton …          1456 YES        MALE     ""                   
+    ##  7 http://ma… "Clinton …          1456 YES        MALE     ""                   
+    ##  8 http://ma… "Pietro M…           769 YES        MALE     ""                   
+    ##  9 http://ma… "Wanda Ma…          1214 YES        FEMALE   ""                   
+    ## 10 http://ma… "Jacques …           115 NO         MALE     ""                   
+    ## # ℹ 57 more rows
+    ## # ℹ 28 more variables: Full.Reserve.Avengers.Intro.x <chr>, Year.x <int>,
+    ## #   Years.since.joining.x <int>, Honorary.x <chr>, Return1 <chr>,
+    ## #   Return2 <chr>, Return3 <chr>, Return4 <chr>, Return5 <chr>, Notes.x <chr>,
+    ## #   Time <dbl>, Death <chr>, URL.y <chr>, Appearances.y <int>,
+    ## #   Current..y <chr>, Gender.y <chr>, Probationary.Introl.y <chr>,
+    ## #   Full.Reserve.Avengers.Intro.y <chr>, Year.y <int>, …
+
+``` r
+stasis_count
+```
+
+    ## [1] 67
+
+### My Answer
+
+Based on the result from the `death_stasis_check` table, we identified
+**67** instances where characters were marked as “dead” but later
+“returned.” This supports the FiveThirtyEight statement that Avengers
+who are believed to be dead may not always remain so, with some
+effectively being “hidden away in a stasis tube” or similar scenarios
+that enable their return. This finding aligns with the article’s claim,
+illustrating that in the Marvel universe, death is often temporary, and
+characters frequently find ways to reappear after seeming to perish.
